@@ -153,22 +153,22 @@
 
 /gate/actor/addActor PhaseSpaceActor PHS_ENTRANCE
 /gate/actor/PHS_ENTRANCE/attachTo BeamLineEntrance
-/gate/actor/PHS_ENTRANCE/useVolumeFrame
+/gate/actor/PHS_ENTRANCE/useVolumeFrame true
 /gate/actor/PHS_ENTRANCE/save output/BeamLineEntrance.root
 
 /gate/actor/addActor PhaseSpaceActor PHS_MIDDLE
 /gate/actor/PHS_MIDDLE/attachTo BeamLineMiddle
-/gate/actor/PHS_MIDDLE/useVolumeFrame
+/gate/actor/PHS_MIDDLE/useVolumeFrame true
 /gate/actor/PHS_MIDDLE/save output/BeamLineMiddle.root
 
 /gate/actor/addActor PhaseSpaceActor PHS_EXIT
 /gate/actor/PHS_EXIT/attachTo BeamLineExit
-/gate/actor/PHS_EXIT/useVolumeFrame
+/gate/actor/PHS_EXIT/useVolumeFrame true
 /gate/actor/PHS_EXIT/save output/BeamLineExit.root
 
 /gate/actor/addActor PhaseSpaceActor PHS_GLOBALBOX
 /gate/actor/PHS_GLOBALBOX/attachTo mainBoxEntrance
-/gate/actor/PHS_GLOBALBOX/useVolumeFrame
+/gate/actor/PHS_GLOBALBOX/useVolumeFrame true
 /gate/actor/PHS_GLOBALBOX/save output/GlobalBoxEntrance.root
 
 #=====================================================
