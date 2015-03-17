@@ -31,6 +31,8 @@
 #ifdef G4ANALYSIS_USE_ROOT
 #include "GateSourcePencilBeam.hh"
 #include "G4Proton.hh"
+#include "G4ParticleTable.hh"
+#include "G4IonTable.hh"
 #include "G4Tokenizer.hh"
 #include <iostream>
 //#include "TMath.h"
@@ -285,11 +287,15 @@ void GateSourcePencilBeam::GenerateVertex( G4Event* aEvent )
 
   //-------- PARTICLE GENERATION - START------------------
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
-  G4ParticleDefinition* particle_definition;
+  const G4ParticleDefinition* particle_definition;
 
   string parttype=mParticleType;
   if ( parttype == "GenericIon" ){
-    particle_definition=  particleTable->GetIon( mAtomicNumber, mAtomicMass, mIonExciteEnergy);
+#if G4VERSION_MAJOR < 10
+    particle_definition = particleTable->GetIon( mAtomicNumber, mAtomicMass, mIonExciteEnergy);
+#else
+    particle_definition = particleTable->GetIonTable()->GetIon( mAtomicNumber, mAtomicMass, mIonExciteEnergy);
+#endif
   //G4cout<<G4endl<<G4endl<<"mParticleType  "<<mParticleType<<"     selected loop  GenericIon"<<G4endl;
   //G4cout<<mAtomicNumber<<"  "<<mAtomicMass<<"  "<<mIonCharge<<"  "<<mIonExciteEnergy<<G4endl;
   }

@@ -14,6 +14,7 @@
 #include "G4Geantino.hh"
 #include "G4ThreeVector.hh"
 #include "G4ParticleTable.hh"
+#include "G4IonTable.hh"
 #include "G4UIdirectory.hh"
 #include "G4UIcmdWithoutParameter.hh"
 #include "G4UIcmdWithAString.hh"
@@ -1525,7 +1526,11 @@ void GateSingleParticleSourceMessenger::IonCommand( G4String newValues )
             }
         }
       G4ParticleDefinition* ion ;
+#if G4VERSION_MAJOR < 10
       ion =  particleTable->GetIon( fAtomicNumber, fAtomicMass, fIonExciteEnergy ) ;
+#else
+      ion =  particleTable->GetIonTable()->GetIon( fAtomicNumber, fAtomicMass, fIonExciteEnergy ) ;
+#endif
       if( ion==0 )
         {
           G4cout << "Ion with Z=" << fAtomicNumber ;

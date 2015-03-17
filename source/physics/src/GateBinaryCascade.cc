@@ -153,7 +153,7 @@ G4HadFinalState * GateBinaryCascade::ApplyYourself(const G4HadProjectile & aTrac
   if(getenv("BCDEBUG") ) G4cerr << " ######### Binary Cascade Reaction number starts ######### "<<eventcounter<<G4endl;
 
   G4LorentzVector initial4Momentum = aTrack.Get4Momentum();
-  G4ParticleDefinition * definition = const_cast<G4ParticleDefinition *>(aTrack.GetDefinition());
+  const G4ParticleDefinition * definition = aTrack.GetDefinition();
 
   /*if(initial4Momentum.e()-initial4Momentum.m()<theBCminP &&
       ( definition==G4Neutron::NeutronDefinition() || definition==G4Proton::ProtonDefinition() ) ) 
@@ -217,7 +217,12 @@ G4HadFinalState * GateBinaryCascade::ApplyYourself(const G4HadProjectile & aTrac
       theCurrentTime=0;
       G4double radius = the3DNucleus->GetOuterRadius()+3*fermi;
       initialPosition=GetSpherePoint(1.1*radius, initial4Momentum);  // get random position
+#if G4VERSION_MAJOR < 10
+      // older Geant4 versions were sloppy with const-ness, apparently
+      kt = new G4KineticTrack(const_cast<G4ParticleDefinition*>(definition), 0., initialPosition, initial4Momentum);
+#else
       kt = new G4KineticTrack(definition, 0., initialPosition, initial4Momentum);
+#endif
       kt->SetState(G4KineticTrack::outside);
        // secondaries has been cleared by Propagate() in the previous loop event
       secondaries= new G4KineticTrackVector;
@@ -887,7 +892,7 @@ void GateBinaryCascade::BuildTargetList()
   ClearAndDestroy(&theTargetList);  // clear theTargetList before rebuilding
 
   G4Nucleon * nucleon;
-  G4ParticleDefinition * definition;
+  const G4ParticleDefinition * definition;
   G4ThreeVector pos;
   G4LorentzVector mom;
 // if there are nucleon hit by higher energy models, then SUM(momenta) != 0
@@ -907,7 +912,11 @@ void GateBinaryCascade::BuildTargetList()
 	theInitial4Mom += mom;
 //        the potential inside the nucleus is taken into account, and nucleons are on mass shell.
 	mom.setE( std::sqrt( mom.vect().mag2() + sqr(definition->GetPDGMass()) ) );
+#if G4VERSION_MAJOR < 10
+	G4KineticTrack * kt = new G4KineticTrack(const_cast<G4ParticleDefinition*>(definition), 0., pos, mom);
+#else
 	G4KineticTrack * kt = new G4KineticTrack(definition, 0., pos, mom);
+#endif
 	kt->SetState(G4KineticTrack::inside);
 	kt->SetNucleon(nucleon);
 	theTargetList.push_back(kt);
@@ -1110,7 +1119,7 @@ G4bool GateBinaryCascade::ApplyCollision(G4CollisionInitialState * collision)
      std::vector<G4KineticTrack *>::iterator titer;
      for ( titer=target_collection.begin() ; titer!=target_collection.end(); ++titer)
      {
-	G4ParticleDefinition * aDef=(*titer)->GetDefinition();
+	const G4ParticleDefinition * aDef=(*titer)->GetDefinition();
 	G4int aCode=aDef->GetPDGEncoding();
 	G4ThreeVector aPos=(*titer)->GetPosition();
 	initial_Efermi+= RKprop->GetField(aCode, aPos);
@@ -1477,7 +1486,7 @@ G4bool GateBinaryCascade::CheckPauliPrinciple(G4KineticTrackVector * products)
   const G4VNuclearDensity * density=the3DNucleus->GetNuclearDensity();
 
   G4KineticTrackVector::iterator i;
-  G4ParticleDefinition * definition;
+  const G4ParticleDefinition * definition;
 
 // ------ debug
   G4bool myflag = true;
@@ -2339,9 +2348,15 @@ G4Fragment * GateBinaryCascade::FindFragments()
 //GF  fragment->SetNumberOfParticles(excitons-holes);
   fragment->SetNumberOfParticles(excitons);
   fragment->SetNumberOfCharged(zCaptured);
+#if G4VERSION_MAJOR < 10
   G4ParticleDefinition * aIonDefinition =
        G4ParticleTable::GetParticleTable()->FindIon(a,z,0,z);
   fragment->SetParticleDefinition(aIonDefinition);
+#else
+  const G4ParticleDefinition * aIonDefinition =
+       G4ParticleTable::GetParticleTable()->GetIonTable()->FindIon(a,z,0,z);
+  fragment->SetParticleDefinition(aIonDefinition);
+#endif
 
   return fragment;
 }
@@ -2613,7 +2628,7 @@ void GateBinaryCascade::PrintKTVector(G4KineticTrack * kt, std::string comment)
     G4ThreeVector pos = kt->GetPosition();
     G4LorentzVector mom = kt->Get4Momentum();
     G4LorentzVector tmom = kt->GetTrackingMomentum();
-    G4ParticleDefinition * definition = kt->GetDefinition();
+    const G4ParticleDefinition * definition = kt->GetDefinition();
     G4cout << "    definition: " << definition->GetPDGEncoding() << " pos: "
 	   << 1/fermi*pos << " R: " << 1/fermi*pos.mag() << " 4mom: "
 	   << 1/MeV*mom <<"Tr_mom" <<  1/MeV*tmom << " P: " << 1/MeV*mom.vect().mag() 
@@ -2634,7 +2649,7 @@ G4bool GateBinaryCascade::CheckDecay(G4KineticTrackVector * products)
   const G4VNuclearDensity * density=the3DNucleus->GetNuclearDensity();
 
   G4KineticTrackVector::iterator i;
-  G4ParticleDefinition * definition;
+  const G4ParticleDefinition * definition;
 
 // ------ debug
   G4bool myflag = true;

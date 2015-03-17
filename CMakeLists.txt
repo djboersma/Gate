@@ -55,12 +55,12 @@ ENDIF()
 
 #=========================================================
 # Option for Root use
-OPTION(GATE_USE_ROOT "Gate use ROOT (Recommanded)" ON)
+OPTION(GATE_USE_ROOT "Gate use ROOT (Recommended)" ON)
 OPTION(GATE_USE_OPTICAL "Gate use optical photon" OFF)
 OPTION(GATE_USE_LMF "Gate use LMF" OFF)
 OPTION(GATE_USE_ECAT7 "Gate use ECAT7" OFF)
-OPTION(GATE_ANALYSIS_USE_GENERAL "Gate use  G4ANALYSIS_USE_GENERAL (Recommanded)" ON)
-OPTION(GATE_ANALYSIS_USE_FILE "Gate use G4ANALYSIS_USE_FILE (Recommanded)" ON)
+OPTION(GATE_ANALYSIS_USE_GENERAL "Gate use  G4ANALYSIS_USE_GENERAL (Recommended)" ON)
+OPTION(GATE_ANALYSIS_USE_FILE "Gate use G4ANALYSIS_USE_FILE (Recommended)" ON)
 OPTION(GATE_USE_SYSTEM_CLHEP "If 'ON', Gate does not use the standard CLHEP of GEANT4. Use OFF if you compile G4 with embedded CLHEP" OFF)
 OPTION(GATE_USE_GPU "Gate use GPU (voxelized src and tracking), need CUDA " OFF)
 
@@ -214,4 +214,8 @@ ENDIF(GATE_DOWNLOAD_EXAMPLES_DATA)
 # We remove the warning option "shadow", because there are tons of
 # such warning related to clhep/g4 system of units.
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-shadow")
+# there were some API changes between geant4 version 9 and 10, e.g. for GetIon()
+# passing these version flags helps to make GATE compile with both geant4 versions
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DG4VERSION_MAJOR=${G4VERSION_MAJOR} -DG4VERSION_MINOR=${G4VERSION_MINOR}")
+MESSAGE(${CMAKE_CXX_FLAGS})
 #=========================================================
