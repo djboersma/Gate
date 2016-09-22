@@ -18,6 +18,7 @@
 //-----------------------------------------------------------------------------
 /// Constructor
 GateImageWithStatistic::GateImageWithStatistic()  {
+  mUseSparseImageEnabled = false;
   mIsSquaredImageEnabled = false;
   mIsUncertaintyImageEnabled = false;
   mIsValuesMustBeScaled = false;

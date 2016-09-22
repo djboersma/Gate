@@ -44,6 +44,7 @@ class GateImageWithStatistic
   void  SetValue(const int index, double value );
   void Fill(double value);
 
+  void EnableSparseImage(bool b)      { mUseSparseImageEnabled = b; }
   void EnableSquaredImage(bool b)     { mIsSquaredImageEnabled = b; }
   void EnableUncertaintyImage(bool b) { mIsUncertaintyImageEnabled = b; }
   void SetScaleFactor(double s);
@@ -73,10 +74,19 @@ class GateImageWithStatistic
   GateImageDouble mUncertaintyImage;
   GateImageDouble mScaledValueImage;
   GateImageDouble mScaledSquaredImage;
+
+  GateSparseImageDouble mSparseValueImage;
+  GateSparseImageDouble mSparseSquaredImage;
+  GateSparseImageDouble mSparseTempImage;
+  GateSparseImageDouble mSparseUncertaintyImage;
+  GateSparseImageDouble mSparseScaledValueImage;
+  GateSparseImageDouble mSparseScaledSquaredImage;
+
   bool mOverWriteFilesFlag;
   bool mNormalizedToMax;
   bool mNormalizedToIntegral;
 
+  bool mUseSparseImageEnabled;
   bool mIsSquaredImageEnabled;
   bool mIsUncertaintyImageEnabled;
   bool mIsValuesMustBeScaled;
