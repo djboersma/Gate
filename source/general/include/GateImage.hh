@@ -20,11 +20,17 @@
 
 // gate
 #include "GateImageT.hh"
+#include "GateSparseImageT.hh"
 
 
 typedef GateImageT<float> GateImage;
 typedef GateImageT<float> GateImageFloat;
 typedef GateImageT<double> GateImageDouble;
 typedef GateImageT<int> GateImageInt;
+
+typedef GateSparseImageT<float> GateSparseImage;
+typedef GateSparseImageT<float> GateSparseImageFloat;
+typedef GateSparseImageT<double> GateSparseImageDouble;
+typedef GateSparseImageT<int> GateSparseImageInt;
 
 #endif
