@@ -245,16 +245,22 @@ ELSE()
   SET(ITKMHD_LIBS MetaIO itkzlib)
 ENDIF()
 
+# everything except GPU and main
+ADD_LIBRARY(GateImpl ${sources} ${headers})
+set(GATE_IMPL_LIBRARY -L${PROJECT_BINARY_DIR} -lGateImpl)
+
 #=========================================================
 # Add the executable, and link it to the Geant4/ROOT/CLHEP/ITK libraries
 IF(GATE_USE_GPU AND CUDA_FOUND)
   SET(CUDA_NVCC_FLAGS "-G;-gencode arch=compute_30,code=sm_30;-gencode arch=compute_32,code=sm_32;-gencode arch=compute_35,code=sm_35;-gencode arch=compute_37,code=sm_37;-gencode arch=compute_50,code=sm_50;-gencode arch=compute_52,code=sm_52;-gencode arch=compute_53,code=sm_53;-gencode arch=compute_60,code=sm_60;-gencode arch=compute_61,code=sm_61;--use_fast_math;-w;--ptxas-options=-v")
-  CUDA_ADD_EXECUTABLE(Gate Gate.cc ${sources} ${sourcesGPU} ${headers})
+  CUDA_ADD_EXECUTABLE(Gate Gate.cc ${sourcesGPU} ${headers})
 ELSE(GATE_USE_GPU AND CUDA_FOUND)
-  ADD_EXECUTABLE(Gate Gate.cc ${sources} ${headers})
+  ADD_EXECUTABLE(Gate Gate.cc ${headers})
 ENDIF(GATE_USE_GPU AND CUDA_FOUND)
 
-TARGET_LINK_LIBRARIES(Gate ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ${CLHEP_LIBRARIES} ${LIBXML2_LIBRARIES} ${LIBXRL_LIBRARIES} ${LMF_LIBRARY} ${ECAT7_LIBRARY} ${ITK_LIBRARIES} ${RTK_LIBRARIES} pthread)
+ADD_DEPENDENCIES(Gate GateImpl)
+
+TARGET_LINK_LIBRARIES(Gate ${GATE_IMPL_LIBRARY} ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ${CLHEP_LIBRARIES} ${LIBXML2_LIBRARIES} ${LMF_LIBRARY} ${ECAT7_LIBRARY} ${RTK_LIBRARIES} ${ITK_LIBRARIES} pthread)
 
 #=========================================================
 INSTALL(TARGETS Gate DESTINATION bin)
@@ -289,3 +295,12 @@ SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -pg")
 SET(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO} -pg")
 SET(CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO} -pg")
 #=========================================================
+
+option(GATE_UNIT_TESTS "Compile (and run) unit tests (requires BOOST >=1.54)" OFF)
+IF(GATE_UNIT_TESTS)
+  IF(BUILD_TESTING)
+    ADD_SUBDIRECTORY(source/unit_tests)
+  ELSE(BUILD_TESTING)
+    MESSAGE(WARNING "Unit tests will only be built and run if you also set 'BUILD_TESTING' to ON")
+  ENDIF(BUILD_TESTING)
+ENDIF(GATE_UNIT_TESTS)

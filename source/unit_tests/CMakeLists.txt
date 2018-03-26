@@ -1,0 +1,21 @@
+FIND_PACKAGE(Boost 1.54)
+
+IF (NOT Boost_FOUND)
+MESSAGE(WARNING "BOOST not found the normal way")
+SET(Boost_NO_BOOST_CMAKE ON)
+FIND_PACKAGE(Boost 1.54)
+ENDIF (NOT Boost_FOUND)
+
+IF (Boost_FOUND)
+MESSAGE(WARNING "BOOST was found")
+ELSE(Boost_FOUND)
+MESSAGE(WARNING "BOOST was definitely not found")
+ENDIF(Boost_FOUND)
+
+FILE(GLOB GENERAL_TEST_MAIN general/main.cc)
+FILE(GLOB GENERAL_TEST_SRCS general/Gate*.cc)
+ADD_EXECUTABLE(general_unit_tests ${GENERAL_TEST_MAIN} ${GENERAL_TEST_SRCS})
+ADD_DEPENDENCIES(general_unit_tests GateImpl)
+TARGET_LINK_LIBRARIES(general_unit_tests ${GATE_IMPL_LIBRARY} ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ${CLHEP_LIBRARIES} ${LIBXML2_LIBRARIES} ${LMF_LIBRARY} ${ECAT7_LIBRARY} ${RTK_LIBRARIES} ${ITK_LIBRARIES} pthread)
+ADD_TEST(NAME general_unit_tests
+         COMMAND general_unit_tests -r detailed)
