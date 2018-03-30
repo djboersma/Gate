@@ -17,6 +17,7 @@
 #include "G4UIcmdWithAString.hh"
 #include "G4UIcmdWith3VectorAndUnit.hh"
 #include "G4UIcmdWithABool.hh"
+#include "G4UIcmdWithADouble.hh"
 
 //---------------------------------------------------------------------------
 GateVImageVolumeMessenger::GateVImageVolumeMessenger(GateVImageVolume* volume)
@@ -94,6 +95,10 @@ GateVImageVolumeMessenger::GateVImageVolumeMessenger(GateVImageVolume* volume)
   pDoNotBuildVoxelsCmd = 0;
   pDoNotBuildVoxelsCmd = new G4UIcmdWithABool(n,this);
   pDoNotBuildVoxelsCmd->SetGuidance("Only build the bounding box (no voxels !), for visualization purpose only.");
+
+  n = dir +"/setMaxOutOfRangeFraction";
+  pSetMaxOutOfRangeFractionCmd = new G4UIcmdWithADouble(n,this);
+  pSetMaxOutOfRangeFractionCmd->SetGuidance("Maximum fraction (number between 0.0 and 1.0) of voxels that have a HU value out of the range of the materials table.");
 }
 //---------------------------------------------------------------------------
 
@@ -114,6 +119,7 @@ GateVImageVolumeMessenger::~GateVImageVolumeMessenger()
   delete pBuildDensityImageCmd;
   delete pDoNotBuildVoxelsCmd;
   delete pIsoCenterRotationFlagCmd;
+  delete pSetMaxOutOfRangeFractionCmd;
 }
 //---------------------------------------------------------------------------
 
@@ -156,6 +162,9 @@ void GateVImageVolumeMessenger::SetNewValue(G4UIcommand* command,
   }
   else if (command == pIsoCenterRotationFlagCmd) {
     pVImageVolume->SetIsoCenterRotationFlag(pIsoCenterRotationFlagCmd->GetNewBoolValue(newValue));
+  }
+  else if ( command == pSetMaxOutOfRangeFractionCmd) {
+    pVImageVolume->SetMaxOutOfRangeFraction(pSetMaxOutOfRangeFractionCmd->GetNewDoubleValue(newValue));
   }
   // It is necessary to call GateVolumeMessenger::SetNewValue if the command
   // is not recognized
