@@ -5,7 +5,7 @@ BOOST_AUTO_TEST_SUITE( HounsfieldToMaterialTests )
 
 BOOST_AUTO_TEST_CASE( hello )
 {
-    BOOST_MESSAGE( "Hello world!" );
+    BOOST_TEST_MESSAGE( "Hello world!" );
 }
 
 BOOST_AUTO_TEST_CASE( instantiate )
