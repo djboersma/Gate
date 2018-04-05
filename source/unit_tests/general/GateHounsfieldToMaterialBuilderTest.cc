@@ -1,23 +1,39 @@
-#include <boost/test/unit_test.hpp>
+// this is the class we want to test
 #include <GateHounsfieldToMaterialsBuilder.hh>
+// design flaw: in order to get "the" material detector base, we first need to construct "the" detector
+#include <GateMaterialDatabase.hh>
 #include <string>
-#include <vector>
-#include <fstream>
 
-// TO DO: find a portable and safe way to generate temporary filenames
-// tmpnam/tmpfile is deprecated
-// mkstemp is not portable
-// boost::filesystem::unique_path requires boost with libraries, not only headers
-// TO DO: maybe force user to provide link to GateContrib, or other path for standard input data
+#ifdef GATE_SOURCE_DIR
+#define XSTRINGIZE(s) STRINGIZE(s)
+#define STRINGIZE(s) #s
+#define GATE_SOURCE_DIR_STRING XSTRINGIZE(GATE_SOURCE_DIR)
+#else
+#error "GATE_SOURCE_DIR not defined"
+#endif
+// #define BOOST_FILESYSTEM_NO_LIB 
+#include <boost/test/unit_test.hpp>
+// #include <boost/filesystem.hpp>
+// namespace bfs = boost::filesystem;
 
 struct HUfixture {
     HUfixture() : hu2mb(new GateHounsfieldToMaterialsBuilder),
-                  tmp_material_file("tmp_material_table.txt"),
-                  tmp_density_file("tmp_density_table.txt"),
-                  tmp_output_db("tmp_output_db.txt"),
-                  tmp_output_table("tmp_output_table.txt"){
+                  input_material_file("tmp_material_file.txt"),
+                  input_density_file("tmp_density_table.txt"),
+                  output_db_file("output_db_file.txt"),
+                  output_HU_material_file("output_HU_material_file.txt"){
         BOOST_TEST_MESSAGE( "Doing: setup of HU fixture" );
-        std::ofstream fmaterials(tmp_material_file);
+#if 1
+        theMaterialDatabase.AddMDBFile( GATE_SOURCE_DIR_STRING "/GateMaterials.db" );
+#elif 0
+        theMaterialDatabase.AddMDBFile( (bfs::path( GATE_SOURCE_DIR_STRING ) / bfs::path("GateMaterials.db") ).string() );
+#else
+        bfs::path mdbpath;
+        mdbpath /= GATE_SOURCE_DIR_STRING;
+        mdbpath /= "GateMaterials.db";
+        theMaterialDatabase.AddMDBFile( mdbpath.string() );
+#endif
+        std::ofstream fmaterials(input_material_file);
         // copy from GateContrib/dosimetry/Radiotherapy/example2/data/SimpleMaterialsTable.txt
         fmaterials
             << "# ===============================================================================" << std::endl
@@ -36,7 +52,7 @@ struct HUfixture {
             << "  1640   0   0     0   0    0   0   0    0    0   0   0    0  0    4  2  65  29  AmalgamTooth" << std::endl
             << "  2300   0   0     0   0    0   0   0    0    0   0   0    0  100  0  0  0   0  MetallImplants" << std::endl
             << "  3000   0   0     0   0    0   0   0    0    0   0   0    0  100  0  0  0   0  MetallImplants" << std::endl;
-        std::ofstream fdensities(tmp_density_file);
+        std::ofstream fdensities(input_density_file);
         // copy from GateContrib/dosimetry/Radiotherapy/example2/data/Schneider2000DensitiesTable.txt
         fdensities
             << "# ===================" << std::endl
@@ -52,17 +68,17 @@ struct HUfixture {
             << "1600\t1.964200" << std::endl
             << "3000\t2.8" << std::endl;
 
-        hu2mb->SetMaterialTable(tmp_material_file);
-        hu2mb->SetDensityTable(tmp_material_file);
-        hu2mb->SetOutputMaterialDatabaseFilename(tmp_output_db);
-        hu2mb->SetOutputHUMaterialFilename(tmp_output_table);
+        hu2mb->SetMaterialTable(input_material_file);
+        hu2mb->SetDensityTable(input_material_file);
+        hu2mb->SetOutputMaterialDatabaseFilename(output_db_file);
+        hu2mb->SetOutputHUMaterialFilename(output_HU_material_file);
         hu2mb->SetDensityTolerance( 0.1 );
         BOOST_TEST_MESSAGE( "Done: setup of HU fixture" );
     }
     ~HUfixture(){
         BOOST_TEST_MESSAGE( "Doing: teardown of HU fixture" );
 /*
-        for (auto &s : std::vector<std::string>{tmp_material_file,tmp_density_file,tmp_output_db,tmp_output_table}){
+        for (auto &s : std::vector<std::string>{input_material_file,input_density_file,output_db_file,output_HU_material_file}){
             if ( std::remove(s.c_str()) == 0 ){
                 BOOST_TEST_MESSAGE( std::string("deleted: ") + s );
             } else {
@@ -72,13 +88,14 @@ struct HUfixture {
 */
         delete hu2mb;
         BOOST_TEST_MESSAGE( "Done: teardown of HU fixture" );
+        GateMaterialDatabase::DeleteInstance();
     }
     // objects created for each test
     GateHounsfieldToMaterialsBuilder* hu2mb;
-    std::string tmp_material_file;
-    std::string tmp_density_file;
-    std::string tmp_output_db;
-    std::string tmp_output_table;
+    std::string input_material_file;
+    std::string input_density_file;
+    std::string output_db_file;
+    std::string output_HU_material_file;
 };
 
 /******************************************************************************************************************/
