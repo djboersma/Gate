@@ -43,7 +43,6 @@
 #include <vector>
 #include <fstream>
 #include "GateARFSD.hh"
-#include "GateDetectorConstruction.hh"
 
 class G4Material;
 

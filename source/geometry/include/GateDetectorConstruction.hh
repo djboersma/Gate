@@ -32,8 +32,6 @@ class GateBox;
 class GateSystemListManager;
 class GateARFSD;
 
-#define theMaterialDatabase GateDetectorConstruction::GetGateDetectorConstruction()->mMaterialDatabase
-
 class GateDetectorConstruction : public G4VUserDetectorConstruction
 {
 
@@ -97,8 +95,6 @@ public:
 
   virtual inline G4bool GetFlagMove() const { return moveFlag; };
 
-  /// The Material database
-  GateMaterialDatabase mMaterialDatabase;
 
   inline GateCrystalSD* GetCrystalSD()
   { return m_crystalSD; }
@@ -134,6 +130,9 @@ private :
 
   // Pour utiliser le DetectorMessenger
   GateDetectorMessenger* pdetectorMessenger;  //pointer to the Messenger
+
+  /// The Material database
+  GateMaterialDatabase& mMaterialDatabase;
 
   static GateDetectorConstruction* pTheGateDetectorConstruction;
 

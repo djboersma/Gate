@@ -10,7 +10,6 @@ See LICENSE.md for further details
 #include "GateGeometryVoxelRangeTranslator.hh"
 #include "GateGeometryVoxelRangeTranslatorMessenger.hh"
 
-#include "GateDetectorConstruction.hh"
 #include "GateMaterialDatabase.hh"
 
 #include "G4ios.hh"

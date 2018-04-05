@@ -29,7 +29,8 @@
 #include "GateTools.hh"
 #include "GateTetMeshReader.hh"
 #include "GateMessageManager.hh"
-#include "GateDetectorConstruction.hh"  // <-- contains "theMaterialDatabase"
+#include "GateDetectorConstruction.hh"
+#include "GateMaterialDatabase.hh"
 #include "GateMultiSensitiveDetector.hh"
 #include "GateTetMeshBoxMessenger.hh"
 

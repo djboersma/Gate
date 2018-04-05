@@ -27,17 +27,18 @@ class G4Material;
 
 //#define DEFAULT_GATESURFACEMATDB "Materials.xml"
 
+#define theMaterialDatabase (*GateMaterialDatabase::Instance())
+
 class GateMaterialDatabase
 {
 public:
-  GateMaterialDatabase();
-  ~GateMaterialDatabase();
-
   void AddMDBFile(const G4String& filename);
 
   G4Element*  GetElement(const G4String& name);
   G4Material* GetMaterial(const G4String& materialName);
 
+  static GateMaterialDatabase* Instance();
+  static void DeleteInstance();
 
 protected:
   G4Element*  ReadElementFromDBFile(const G4String& elementName)  ;
@@ -48,8 +49,12 @@ protected:
   inline G4Material* LookForMaterialInTable(const G4String& materialName) { return G4Material::GetMaterial(materialName, false); }
 
 private:
+  GateMaterialDatabase();
+  ~GateMaterialDatabase();
   std::vector<GateMDBFile*> mMDBFile;
   G4MaterialPropertiesTable * water_MPT;
+  static GateMaterialDatabase* pTheMaterialDatabase;
 };
+
 
 #endif

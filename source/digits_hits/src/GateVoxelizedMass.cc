@@ -19,7 +19,6 @@
 
 #include "GateVoxelizedMass.hh"
 #include "GateMiscFunctions.hh"
-#include "GateDetectorConstruction.hh"
 #include "GateMaterialDatabase.hh"
 
 #include <G4IntersectionSolid.hh>

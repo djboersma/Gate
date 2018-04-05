@@ -21,6 +21,7 @@
 #include "GateImageRegularParametrisedVolumeMessenger.hh"
 #include "GateImageRegularParametrisedVolume.hh"
 #include "GateDetectorConstruction.hh"
+#include "GateMaterialDatabase.hh"
 #include "GateImageNestedParametrisation.hh"
 #include "GateMultiSensitiveDetector.hh"
 #include "GateMiscFunctions.hh"

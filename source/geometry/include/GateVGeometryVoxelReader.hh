@@ -74,12 +74,12 @@ public:
   }
 
 protected:
+  GateMaterialDatabase&          mMaterialDatabase;
 
   GateVGeometryVoxelTranslator*  m_voxelTranslator;
 
   G4String                       m_fileName;
 
-  GateMaterialDatabase          mMaterialDatabase;
 };
 
 #endif

@@ -35,19 +35,20 @@
 #include "GateSurfaceList.hh"
 #endif
 
-GateDetectorConstruction* GateDetectorConstruction::pTheGateDetectorConstruction=0;
+GateDetectorConstruction* GateDetectorConstruction::pTheGateDetectorConstruction=nullptr;
 
 //---------------------------------------------------------------------------------
-GateDetectorConstruction::GateDetectorConstruction()
-  :  pworld(0),
-     pworldPhysicalVolume(0),
+GateDetectorConstruction::GateDetectorConstruction() :
+     pworld(nullptr),
+     pworldPhysicalVolume(nullptr),
      nGeometryStatus(geometry_needs_rebuild),
      flagAutoUpdate(false),
-     m_crystalSD(0),
-     m_phantomSD(0),
-     pdetectorMessenger(0),
+     m_crystalSD(nullptr),
+     m_phantomSD(nullptr),
+     pdetectorMessenger(nullptr),
+     mMaterialDatabase(theMaterialDatabase),
      moveFlag(0),
-     m_magField(0), m_magFieldValue(0)
+     m_magField(nullptr), m_magFieldValue(0)
 {
 
   GateMessage("Geometry", 1, "GateDetectorConstruction instantiating...\n");
@@ -118,6 +119,7 @@ GateDetectorConstruction::~GateDetectorConstruction()
     pworld = 0;
   }
   delete pdetectorMessenger;
+  GateMaterialDatabase::DeleteInstance();
 }
 //---------------------------------------------------------------------------------
 

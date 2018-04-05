@@ -14,7 +14,7 @@
 */
 
 #include "GateHounsfieldMaterialTable.hh"
-#include "GateDetectorConstruction.hh"
+#include "GateMaterialDatabase.hh"
 #include "GateMiscFunctions.hh"
 #include "G4UnitsTable.hh"
 

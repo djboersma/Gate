@@ -1,5 +1,5 @@
 #include "GateRangeMaterialTable.hh"
-#include "GateDetectorConstruction.hh"
+#include "GateMaterialDatabase.hh"
 
 //-----------------------------------------------------------------------------
 GateRangeMaterialTable::GateRangeMaterialTable()

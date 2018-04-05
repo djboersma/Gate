@@ -16,7 +16,6 @@ See LICENSE.md for further details
 #include "GateHounsfieldMaterialProperties.hh"
 #include "GateMiscFunctions.hh"
 #include "GateMaterialDatabase.hh"
-#include "GateDetectorConstruction.hh"
 
 //-----------------------------------------------------------------------------
 GateHounsfieldMaterialProperties::GateHounsfieldMaterialProperties()

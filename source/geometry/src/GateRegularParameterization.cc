@@ -10,8 +10,6 @@
 #include "GateRegularParameterized.hh"
 #include "GateFictitiousVoxelMapParameterized.hh"
 
-#include "GateDetectorConstruction.hh"
-
 #include "G4Material.hh"
 #include "GateMaterialDatabase.hh"
 #include "G4VisAttributes.hh"

@@ -19,7 +19,6 @@
 #include "GateRandomEngine.hh"
 #include "GateApplicationMgr.hh"
 
-#include "GateDetectorConstruction.hh"
 #include "GateMaterialDatabase.hh"
 
 #include <G4VoxelLimits.hh>
@@ -187,8 +186,7 @@ void GateGPUSPECTActor::ResetData() {
   std::vector<G4Material*> m;
   m.push_back((G4Material*)vol->GetMaterial());
 
-  G4Material* colli_mat = GateDetectorConstruction::GetGateDetectorConstruction()
-  								->mMaterialDatabase.GetMaterial(mHoleHexaMat);
+  G4Material* colli_mat = theMaterialDatabase.GetMaterial(mHoleHexaMat);
 
   m.push_back((G4Material*)colli_mat);
 

@@ -18,7 +18,7 @@
 #include "GateVImageVolume.hh"
 #include "GateMiscFunctions.hh"
 #include "GateMessageManager.hh"
-#include "GateDetectorConstruction.hh"
+#include "GateMaterialDatabase.hh"
 #include "GateDMapVol.h"
 #include "GateDMaplongvol.h"
 #include "GateDMapdt.h"

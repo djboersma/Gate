@@ -12,7 +12,7 @@
 #include "GatePromptGammaTLEActor.hh"
 #include "GatePromptGammaTLEActorMessenger.hh"
 #include "GateImageOfHistograms.hh"
-#include "GateDetectorConstruction.hh"
+#include "GateMaterialDatabase.hh"
 
 #include <G4Proton.hh>
 #include <G4VProcess.hh>
@@ -206,7 +206,7 @@ void GatePromptGammaTLEActor::UserSteppingActionInVoxel(int index, const G4Step 
     GateVImageVolume* phantom = GetPhantom(); //this has the correct label to material database.
     GateImage* phantomvox = phantom->GetImage(); //this has the array of voxels.
     G4String materialname = phantom->GetMaterialNameFromLabel(phantomvox->GetValue(tmptrackl->GetVoxelCenterFromIndex(index)));
-    material = GateDetectorConstruction::GetGateDetectorConstruction()->mMaterialDatabase.GetMaterial(materialname);
+    material = theMaterialDatabase.GetMaterial(materialname);
   }
 
   // Get value from histogram. We do not check the material index, and
@@ -251,7 +251,7 @@ void GatePromptGammaTLEActor::BuildVarianceOutput() {
     //PixelType label = phantomvox->GetValue(tmptrackl->GetCoordinatesFromIndex(vi));
     //convert between voxelsizes in phantom and output, NEAREST NEIGHBOUR!
     G4String materialname = phantom->GetMaterialNameFromLabel(phantomvox->GetValue(tmptrackl->GetVoxelCenterFromIndex(vi)));
-    G4Material* material = GateDetectorConstruction::GetGateDetectorConstruction()->mMaterialDatabase.GetMaterial(materialname);
+    G4Material* material = theMaterialDatabase.GetMaterial(materialname);
     int materialindex = material->GetIndex();
 
     TH2D* gammam = data.GetGammaM(materialindex);

@@ -19,10 +19,10 @@ See LICENSE.md for further details
 GateVGeometryVoxelReader::GateVGeometryVoxelReader(GateVVolume* inserter)
   //  : GateGeometryVoxelMapStore(inserter)
   : GateGeometryVoxelArrayStore(inserter)
+  , mMaterialDatabase(theMaterialDatabase)
   , m_voxelTranslator(0)
   , m_fileName(G4String("NULL"))
 {
-  mMaterialDatabase = theMaterialDatabase;
 }
 
 GateVGeometryVoxelReader::~GateVGeometryVoxelReader()

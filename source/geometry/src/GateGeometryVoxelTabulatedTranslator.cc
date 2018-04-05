@@ -13,7 +13,6 @@ See LICENSE.md for further details
 #include "GateGeometryVoxelTabulatedTranslatorMessenger.hh"
 #include "G4Colour.hh"
 
-#include "GateDetectorConstruction.hh"
 #include "GateMaterialDatabase.hh"
 
 //-----------------------------------------------------------------------------------------------

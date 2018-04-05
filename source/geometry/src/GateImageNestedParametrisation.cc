@@ -12,7 +12,7 @@ See LICENSE.md for further details
 */
 #include "GateImageNestedParametrisation.hh"
 #include "GateImageNestedParametrisedVolume.hh"
-#include "GateDetectorConstruction.hh"
+#include "GateMaterialDatabase.hh"
 
 #include "G4ThreeVector.hh"
 //#include "G4Box.hh"

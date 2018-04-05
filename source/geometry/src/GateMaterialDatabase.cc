@@ -19,16 +19,30 @@
 #include "GateXMLDocument.hh"
 #endif
 
+GateMaterialDatabase* GateMaterialDatabase::pTheMaterialDatabase = nullptr;
+
+GateMaterialDatabase* GateMaterialDatabase::Instance() {
+  if (pTheMaterialDatabase == nullptr ){
+    pTheMaterialDatabase = new GateMaterialDatabase;
+  }
+  return pTheMaterialDatabase;
+}
+
+void GateMaterialDatabase::DeleteInstance() {
+    delete pTheMaterialDatabase;
+    pTheMaterialDatabase = nullptr;
+}
+
 //-----------------------------------------------------------------------------
 GateMaterialDatabase::GateMaterialDatabase() {
-  water_MPT = NULL;
+  water_MPT = nullptr;
 }
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 GateMaterialDatabase::~GateMaterialDatabase()
 {
-  if (water_MPT != NULL) delete water_MPT;
+  delete water_MPT;
   std::vector<GateMDBFile*>::iterator i;
   for (i=mMDBFile.begin();i!=mMDBFile.end();++i) {
     delete (*i);
@@ -117,7 +131,7 @@ G4Material* GateMaterialDatabase::ReadMaterialFromDBFile(const G4String& materia
   G4String fileName= "";
 
   // If material is in NIST tables, you are done
-  if(material!=NULL) return material;
+  if(material!=nullptr) return material;
 
   std::vector<GateMDBFile*>::iterator i;
   for (i=mMDBFile.begin();i!=mMDBFile.end();++i) {
@@ -138,7 +152,7 @@ G4Material* GateMaterialDatabase::ReadMaterialFromDBFile(const G4String& materia
   delete Creator;
 
   //------------------------------------------------------------------------------------------------
-  if ((materialName == "Water") && (water_MPT == NULL)) {
+  if ((materialName == "Water") && (water_MPT == nullptr)) {
     const G4int num_water=2;
     G4double pp_water[num_water] =
       { 2.034E-9*GeV, 4.136E-9*GeV };
