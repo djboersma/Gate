@@ -1,5 +1,4 @@
-#FIND_PACKAGE(Boost 1.54 COMPONENTS unit_test_framework filesystem)
-FIND_PACKAGE(Boost 1.54 COMPONENTS unit_test_framework )
+FIND_PACKAGE(Boost 1.54 COMPONENTS unit_test_framework system filesystem)
 
 IF (NOT Boost_FOUND)
 MESSAGE(WARNING "BOOST not found the normal way")
@@ -15,10 +14,9 @@ ENDIF(Boost_FOUND)
 
 FILE(GLOB GENERAL_TEST_MAIN general/main.cc)
 FILE(GLOB GENERAL_TEST_SRCS general/Gate*.cc)
-ADD_EXECUTABLE(general_unit_tests ${GENERAL_TEST_MAIN} ${GENERAL_TEST_SRCS})
-ADD_DEPENDENCIES(general_unit_tests GateImpl)
-ADD_DEFINITIONS(-DGATE_SOURCE_DIR=${CMAKE_HOME_DIRECTORY} )
-TARGET_LINK_LIBRARIES(general_unit_tests ${GATE_IMPL_LIBRARY} ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ${CLHEP_LIBRARIES} ${LIBXML2_LIBRARIES} ${LMF_LIBRARY} ${ECAT7_LIBRARY} ${RTK_LIBRARIES} ${ITK_LIBRARIES} pthread)
-#TARGET_LINK_LIBRARIES(general_unit_tests ${GATE_IMPL_LIBRARY} ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ${CLHEP_LIBRARIES} ${LIBXML2_LIBRARIES} ${LMF_LIBRARY} ${ECAT7_LIBRARY} ${RTK_LIBRARIES} ${ITK_LIBRARIES} -L${Boost_LIBRARY_DIR} -lboost_filesystem -lboost_system pthread)
+add_executable(general_unit_tests ${GENERAL_TEST_MAIN} ${GENERAL_TEST_SRCS})
+add_definitions( -DGATE_SOURCE_DIR=${CMAKE_HOME_DIRECTORY} )
+
+TARGET_LINK_LIBRARIES(general_unit_tests GateImpl ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ${CLHEP_LIBRARIES} ${LIBXML2_LIBRARIES} ${LMF_LIBRARY} ${ECAT7_LIBRARY} ${RTK_LIBRARIES} ${ITK_LIBRARIES} -L${Boost_LIBRARY_DIRS} -lboost_system -lboost_filesystem)
 ADD_TEST(NAME general_unit_tests
          COMMAND general_unit_tests -r detailed)
