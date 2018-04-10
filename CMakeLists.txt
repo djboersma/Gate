@@ -247,7 +247,6 @@ ENDIF()
 
 # everything except GPU and main
 ADD_LIBRARY(GateImpl ${sources} ${headers})
-set(GATE_IMPL_LIBRARY -L${PROJECT_BINARY_DIR} -lGateImpl)
 
 #=========================================================
 # Add the executable, and link it to the Geant4/ROOT/CLHEP/ITK libraries
@@ -258,9 +257,8 @@ ELSE(GATE_USE_GPU AND CUDA_FOUND)
   ADD_EXECUTABLE(Gate Gate.cc ${headers})
 ENDIF(GATE_USE_GPU AND CUDA_FOUND)
 
-ADD_DEPENDENCIES(Gate GateImpl)
-
-TARGET_LINK_LIBRARIES(Gate ${GATE_IMPL_LIBRARY} ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ${CLHEP_LIBRARIES} ${LIBXML2_LIBRARIES} ${LMF_LIBRARY} ${ECAT7_LIBRARY} ${RTK_LIBRARIES} ${ITK_LIBRARIES} pthread)
+MESSAGE("Gate GateImpl ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ${CLHEP_LIBRARIES} ${LIBXML2_LIBRARIES} ${LMF_LIBRARY} ${ECAT7_LIBRARY} ${RTK_LIBRARIES} ${ITK_LIBRARIES}")
+TARGET_LINK_LIBRARIES(Gate GateImpl ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ${CLHEP_LIBRARIES} ${LIBXML2_LIBRARIES} ${LMF_LIBRARY} ${ECAT7_LIBRARY} ${RTK_LIBRARIES} ${ITK_LIBRARIES})
 
 #=========================================================
 INSTALL(TARGETS Gate DESTINATION bin)
