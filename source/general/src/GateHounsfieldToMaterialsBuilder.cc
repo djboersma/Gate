@@ -16,6 +16,7 @@
 #include "GateHounsfieldToMaterialsBuilder.hh"
 #include "GateHounsfieldMaterialTable.hh"
 #include "GateHounsfieldDensityTable.hh"
+#include <fstream>
 
 //-------------------------------------------------------------------------------------------------
 GateHounsfieldToMaterialsBuilder::GateHounsfieldToMaterialsBuilder()
@@ -39,7 +40,7 @@ GateHounsfieldToMaterialsBuilder::~GateHounsfieldToMaterialsBuilder() {
 
 //-------------------------------------------------------------------------------------------------
 void GateHounsfieldToMaterialsBuilder::BuildAndWriteMaterials() {
-  GateMessage("Geometry", 3, "GateHounsfieldToMaterialsBuilder::BuildAndWriteMaterials\n");
+  GateMessage("Geometry", 3, "GateHounsfieldToMaterialsBuilder::BuildAndWriteMaterials" << Gateendl);
 
   // Read matTable.txt
   std::vector<GateHounsfieldMaterialProperties*> mHounsfieldMaterialPropertiesVector;
@@ -58,6 +59,7 @@ void GateHounsfieldToMaterialsBuilder::BuildAndWriteMaterials() {
       if (e != "[/Elements]") elements.push_back(e);
     }
   }
+  GateMessage("Geometry", 3, "got " << elements.size() << " elements" << Gateendl );
 
   while (is) {
     GateHounsfieldMaterialProperties * p = new GateHounsfieldMaterialProperties();
@@ -65,6 +67,7 @@ void GateHounsfieldToMaterialsBuilder::BuildAndWriteMaterials() {
     if (is) mHounsfieldMaterialPropertiesVector.push_back(p);
     else delete p;
   }
+  GateMessage("Geometry", 3, "got " << mHounsfieldMaterialPropertiesVector.size() << " materials" << Gateendl);
 
   //  DD(mHounsfieldMaterialPropertiesVector.size());
 
@@ -76,10 +79,13 @@ void GateHounsfieldToMaterialsBuilder::BuildAndWriteMaterials() {
 
   // Read densities.txt
   GateHounsfieldDensityTable * mDensityTable = new GateHounsfieldDensityTable();
+  GateMessage("Geometry", 3, "reading densities from file " << mDensityTableFilename << Gateendl );
   mDensityTable->Read(mDensityTableFilename);
+  GateMessage("Geometry", 3, "done reading densities from file " << mDensityTableFilename << Gateendl );
 
   // Density tolerance
   double dTol = mDensityTol;
+  GateMessage( "Geometry", 3, "dTol=" << mDensityTol << Gateendl );
 
   // Declare result
   GateHounsfieldMaterialTable * mHounsfieldMaterialTable = new GateHounsfieldMaterialTable();
@@ -102,8 +108,8 @@ void GateHounsfieldToMaterialsBuilder::BuildAndWriteMaterials() {
     // Find densities interval (because densities not always increase)
     double dMin = mDensityTable->GetDensityFromH(HMin);
     double dMax = mDensityTable->GetDensityFromH(HMax);
-    // GateMessage("Core", 0, "Density " << dMin << " " << dMax << Gateendl);
-    //     GateMessage("Core", 0, "Density " << dMin*g/cm3 << " " << dMax*g/cm3 << Gateendl);
+    GateMessage("Geometry", 3, "Density " << dMin << " " << dMax << " in CLHEP units [M][L^-3]" << Gateendl);
+    GateMessage("Geometry", 3, "Density min=" << dMin/(g/cm3) << " g/cm3, max=" << dMax/(g/cm3) << " g/cm3" << Gateendl);
     double dDiffMax = mDensityTable->FindMaxDensityDifference(HMin, HMax);
 
     double n = std::max(1.,dDiffMax/dTol);
@@ -121,6 +127,14 @@ void GateHounsfieldToMaterialsBuilder::BuildAndWriteMaterials() {
     if (mHounsfieldMaterialPropertiesVector[i]->GetName() == "Air") n = 1;
 
     double HTol = (HMax-HMin)/n;
+    GateMessage("Geometry",4, "dMin = " << dMin/(g/cm3) << Gateendl);
+    GateMessage("Geometry",4, "dMax = " << dMax/(g/cm3) << Gateendl);
+    GateMessage("Geometry",4, "dDiffMax = " << dDiffMax/(g/cm3) << Gateendl);
+    GateMessage("Geometry",4, "n = " << n << Gateendl);
+    GateMessage("Geometry",4, "nNaive = " << nNaive << Gateendl);
+    GateMessage("Geometry",4, "HMin = " << HMin << Gateendl);
+    GateMessage("Geometry",4, "HMax = " << HMax << Gateendl);
+    GateMessage("Geometry",4, "HTol = " << HTol << Gateendl);
     // GateMessage("Core", 0, "HTol = " << HTol << Gateendl);
 
     if (n>1) {
