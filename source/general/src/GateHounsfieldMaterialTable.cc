@@ -17,6 +17,7 @@
 #include "GateMaterialDatabase.hh"
 #include "GateMiscFunctions.hh"
 #include "G4UnitsTable.hh"
+#include <fstream>
 
 //-----------------------------------------------------------------------------
 GateHounsfieldMaterialTable::GateHounsfieldMaterialTable()
