@@ -17,6 +17,7 @@
 #include "GateHounsfieldMaterialTable.hh"
 #include "GateHounsfieldDensityTable.hh"
 #include <fstream>
+#include <iterator>
 
 //-------------------------------------------------------------------------------------------------
 GateHounsfieldToMaterialsBuilder::GateHounsfieldToMaterialsBuilder()
@@ -85,19 +86,20 @@ void GateHounsfieldToMaterialsBuilder::BuildAndWriteMaterials() {
 
   // Density tolerance
   double dTol = mDensityTol;
-  GateMessage( "Geometry", 3, "dTol=" << mDensityTol << Gateendl );
+  GateMessage( "Geometry", 3, "dTol=" << G4BestUnit(mDensityTol,"Volumic Mass") << Gateendl );
 
   // Declare result
   GateHounsfieldMaterialTable * mHounsfieldMaterialTable = new GateHounsfieldMaterialTable();
 
   // Loop on material intervals
-  for(unsigned int i=0; i<mHounsfieldMaterialPropertiesVector.size(); i++) {
-    GateMessage("Geometry", 4, "Material " << i << " = " << mHounsfieldMaterialPropertiesVector[i]->GetName() << Gateendl);
+  auto materialprops = mHounsfieldMaterialPropertiesVector.cbegin();
+  auto end_materialprops = mHounsfieldMaterialPropertiesVector.cend();
+  for (size_t i=0; materialprops != end_materialprops; ++materialprops,++i){
+    GateMessage("Geometry", 4, "Material " << i << " = " << (*materialprops)->GetName() << Gateendl);
 
-    double HMin = mHounsfieldMaterialPropertiesVector[i]->GetH();
-    double HMax;
-    if (i == mHounsfieldMaterialPropertiesVector.size()-1) HMax = HMin+1;
-    else HMax = mHounsfieldMaterialPropertiesVector[i+1]->GetH();
+    double HMin = (*materialprops)->GetH();
+    auto next_materialprops  = std::next(materialprops);
+    double HMax = (next_materialprops == end_materialprops) ? HMin+1 : (*next_materialprops)->GetH();
 
     // Check
     if (HMax <= HMin) GateError("Hounsfield shoud be given in ascending order, but I read H["
@@ -124,7 +126,7 @@ void GateHounsfieldToMaterialsBuilder::BuildAndWriteMaterials() {
                                  << alert << Gateendl);
 
     //If material is Air divide into only one range
-    if (mHounsfieldMaterialPropertiesVector[i]->GetName() == "Air") n = 1;
+    if ((*materialprops)->GetName() == "Air") n = 1;
 
     double HTol = (HMax-HMin)/n;
     GateMessage("Geometry",4, "dMin = " << dMin/(g/cm3) << Gateendl);
@@ -138,12 +140,12 @@ void GateHounsfieldToMaterialsBuilder::BuildAndWriteMaterials() {
     // GateMessage("Core", 0, "HTol = " << HTol << Gateendl);
 
     if (n>1) {
-      GateMessage("Geometry", 4, "Material " << mHounsfieldMaterialPropertiesVector[i]->GetName()
+      GateMessage("Geometry", 4, "Material " << (*materialprops)->GetName()
 		  << " devided into " << n << " materials\n");
     }
 
     if (n<0) {
-      GateError("ERROR Material " << mHounsfieldMaterialPropertiesVector[i]->GetName()
+      GateError("ERROR Material " << (*materialprops)->GetName()
 		<< " devided into " << n << " materials : density decrease from "
 		<< G4BestUnit(dMin, "Volumic Mass") << " to "
 		<< G4BestUnit(dMax, "Volumic Mass") << Gateendl);
@@ -154,13 +156,13 @@ void GateHounsfieldToMaterialsBuilder::BuildAndWriteMaterials() {
       double h1 = HMin+j*HTol;
       double h2 = std::min(HMin+(j+1)*HTol, HMax);
       //If material is Air get the lowest density value to avoid adding importance to it
-      double d = mHounsfieldMaterialPropertiesVector[i]->GetName() == "Air" ?
+      double d = (*materialprops)->GetName() == "Air" ?
     		     mDensityTable->GetDensityFromH(h1)  :
     		     mDensityTable->GetDensityFromH(h1+(h2-h1)/2.0);
        GateMessage("Geometry", 4, "H1/H2 " << h1 << " " << h2 << " = "
-       		  << mHounsfieldMaterialPropertiesVector[i]->GetName()
+       		  << (*materialprops)->GetName()
        		  << " d=" << G4BestUnit(d, "Volumic Mass") << Gateendl);
-      mHounsfieldMaterialTable->AddMaterial(h1, h2, d, mHounsfieldMaterialPropertiesVector[i]);
+      mHounsfieldMaterialTable->AddMaterial(h1, h2, d, *materialprops);
     }
   }
 
