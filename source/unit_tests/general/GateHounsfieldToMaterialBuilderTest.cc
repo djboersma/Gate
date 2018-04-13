@@ -19,7 +19,7 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
 namespace bfs = boost::filesystem;
-namespace tt = boost::test_tools;
+
 GateHounsfieldMaterialTable* GetHounsfieldMaterialTableFromFile(std::string filepath,int minHU=-100000);
 
 struct HUfixture {
@@ -111,9 +111,9 @@ BOOST_AUTO_TEST_CASE( reproduce_input_density_data )
     auto hu = hu_input.begin();
     auto d = d_input.begin();
     while (hu != hu_input.end() && d != d_input.end() ){
-        BOOST_TEST_INFO( "checking that for HU = " << *hu << " the density is " << *d << " g/cm3" );
+        BOOST_TEST_MESSAGE( "checking that for HU = " << double(*hu) << " the density is " << double(*d) << " g/cm3" );
         double d_lookup = (*humtable)[humtable->GetLabelFromH(*hu)].mMaterial->GetDensity()/(g/cm3);
-        BOOST_TEST( d_lookup == *d, tt::tolerance(0.001));
+        BOOST_CHECK_CLOSE_FRACTION( d_lookup, *d, 0.001);
         ++hu;
         ++d;
     }
