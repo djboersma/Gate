@@ -3,6 +3,7 @@
 #include <GateHounsfieldToMaterialsBuilder.hh>
 // design flaw: in order to get "the" material detector base, we first need to construct "the" detector
 #include <GateMaterialDatabase.hh>
+#include <GateHounsfieldMaterialTable.hh>
 #include <GateMessageManager.hh>
 #include <G4SystemOfUnits.hh>
 #include <string>
@@ -18,6 +19,8 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
 namespace bfs = boost::filesystem;
+namespace tt = boost::test_tools;
+GateHounsfieldMaterialTable* GetHounsfieldMaterialTableFromFile(std::string filepath,int minHU=-100000);
 
 struct HUfixture {
     HUfixture() : hu2mb(new GateHounsfieldToMaterialsBuilder),
@@ -83,23 +86,43 @@ BOOST_AUTO_TEST_CASE( construct_destruct )
 
 BOOST_AUTO_TEST_CASE( normal_build )
 {
-    BOOST_TEST_MESSAGE( "build standard simple table without crashing" );
+    BOOST_TEST_MESSAGE( "build standard Schneider table without crashing" );
     hu2mb->BuildAndWriteMaterials();
 }
 
 BOOST_AUTO_TEST_CASE( normal_build_density_range )
 {
-    for (double dtol = 0.1 ; dtol>0.9e-6 ; dtol/=10 ){
-        BOOST_TEST_MESSAGE( "build standard simple table without crashing, dtol=" << dtol << " g/cm3" );
+    for (double dtol = 1.0 ; dtol>0.9e-4 ; dtol/=10 ){
+        BOOST_TEST_MESSAGE( "build standard Schneider table without crashing, dtol=" << dtol << " g/cm3" );
         hu2mb->SetDensityTolerance( dtol * g/cm3); // add unit, very important...
         hu2mb->BuildAndWriteMaterials();
+    }
+}
+
+BOOST_AUTO_TEST_CASE( reproduce_input_density_data )
+{
+    BOOST_TEST_MESSAGE( "Check that density values of input data are identical to those in input table.");
+    hu2mb->SetDensityTolerance( 0.1 * g/cm3); // add unit, very important...
+    hu2mb->BuildAndWriteMaterials();
+    theMaterialDatabase.AddMDBFile( output_db_file );
+    auto humtable = GetHounsfieldMaterialTableFromFile(output_HU_material_file);
+    std::vector<int>   hu_input{  -1000, -98,     -97,  14,   23,     100,     101,    1600,3000};
+    std::vector<double> d_input{1.21e-3,0.93,0.930486,1.03,1.031,1.119900,1.076200,1.964200, 2.8};
+    auto hu = hu_input.begin();
+    auto d = d_input.begin();
+    while (hu != hu_input.end() && d != d_input.end() ){
+        BOOST_TEST_INFO( "checking that for HU = " << *hu << " the density is " << *d << " g/cm3" );
+        double d_lookup = (*humtable)[humtable->GetLabelFromH(*hu)].mMaterial->GetDensity()/(g/cm3);
+        BOOST_TEST( d_lookup == *d, tt::tolerance(0.001));
+        ++hu;
+        ++d;
     }
 }
 
 BOOST_AUTO_TEST_SUITE_END()
 
 
-/***************************************************************************************************/
+/******************************************************************************************************************/
 // input data
 void HUfixture::write_HU_input_files(const std::string& material_path,const std::string& density_path){
     std::ofstream fmaterials(material_path);
@@ -161,3 +184,27 @@ void HUfixture::write_HU_input_files(const std::string& material_path,const std:
     fdensities.close();
 }
 
+
+// this should be a method of the GateHounsfieldMaterialTable class!
+GateHounsfieldMaterialTable* GetHounsfieldMaterialTableFromFile(std::string filepath,int minHU){
+  std::ifstream is;
+  OpenFileInput(filepath, is);
+  auto humtable = new GateHounsfieldMaterialTable;
+  while (is) {
+    skipComment(is);
+    double h1,h2;
+    G4String n;
+    is >> h1;
+    is >> h2;
+    is >> n;
+
+    if (is) {
+      if (h2 >= minHU) {
+        if (h1 < minHU)
+          h1 = minHU;
+        humtable->AddMaterial(h1,h2,n);
+      }
+    }
+  }
+  return humtable;
+}
