@@ -141,7 +141,7 @@ void GateHounsfieldToMaterialsBuilder::BuildAndWriteMaterials() {
 
     if (n>1) {
       GateMessage("Geometry", 4, "Material " << (*materialprops)->GetName()
-		  << " devided into " << n << " materials\n");
+		  << " divided into " << n << " materials\n");
     }
 
     if (n<0) {
