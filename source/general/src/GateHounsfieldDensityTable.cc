@@ -35,8 +35,6 @@ GateHounsfieldDensityTable::~GateHounsfieldDensityTable()
 //-----------------------------------------------------------------------------
 double GateHounsfieldDensityTable::GetDensityFromH(double H)
 {
-  GateMessage("Geometry",3,"GateHounsfieldDensityTable::GetDensityFromH(double H): size of mH=" << mH.size() << Gateendl );
-  GateMessage("Geometry",3,"GateHounsfieldDensityTable::GetDensityFromH(double H): size of mD=" << mD.size() << Gateendl );
   return LinearInterpolation(H, mH, mD);
 }
 //-----------------------------------------------------------------------------
@@ -68,11 +66,11 @@ double GateHounsfieldDensityTable::FindMaxDensityDifference(double HMin, double 
 //-----------------------------------------------------------------------------
 void GateHounsfieldDensityTable::Read(G4String filename)
 {
-  GateMessage("Geometry",4, "start reading " << filename << Gateendl);
+  GateMessage("Geometry",5, "start reading " << filename << Gateendl);
   std::ifstream is;
   OpenFileInput(filename, is);
   while (is) {
-    GateMessage("Geometry",4, "skipping comments" << Gateendl);
+    GateMessage("Geometry",5, "skipping comments" << Gateendl);
     skipComment(is);
     double h,d;
     is >> h;
@@ -90,7 +88,7 @@ void GateHounsfieldDensityTable::Read(G4String filename)
       }
     }
   }
-  GateMessage("Geometry",4, "stop reading " << filename << Gateendl);
+  GateMessage("Geometry",5, "stop reading " << filename << Gateendl);
   GateMessage("Geometry",4, "Hounsfield table has " << mH.size() << " H and " << mD.size() << " D entries." << Gateendl);
   if (mH.size()<2){
     GateError("ERROR: Hounsfield density table should contain at least two entries, I got: " << mH.size() << Gateendl);
