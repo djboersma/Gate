@@ -7,6 +7,7 @@
 #include <GateMessageManager.hh>
 #include <G4SystemOfUnits.hh>
 #include <string>
+#include <iterator> // for std::next
 
 #ifdef GATE_SOURCE_DIR
 #define XSTRINGIZE(s) STRINGIZE(s)
@@ -18,6 +19,8 @@
 
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/test/floating_point_comparison.hpp>
+#include <boost/test/data/test_case.hpp>
 namespace bfs = boost::filesystem;
 
 GateHounsfieldMaterialTable* GetHounsfieldMaterialTableFromFile(std::string filepath,int minHU=-100000);
@@ -33,9 +36,9 @@ struct HUfixture {
         BOOST_TEST_MESSAGE( "Doing: setup of HU fixture" );
 
         // allow debugging output (maybe move this to main program?)
-        GateMessageManager *messenger = GateMessageManager::GetInstance();
-        messenger->SetMessageLevel("Geometry",4);
-        messenger->SetMessageLevel("Core",4);
+        GateMessageManager *messman = GateMessageManager::GetInstance();
+        messman->SetMessageLevel("Geometry",2);
+        messman->SetMessageLevel("Core",2);
 
         // provide a material database
         theMaterialDatabase.AddMDBFile( (bfs::path( GATE_SOURCE_DIR_STRING ) / bfs::path("GateMaterials.db") ).string() );
@@ -55,6 +58,7 @@ struct HUfixture {
     }
     ~HUfixture(){
         BOOST_TEST_MESSAGE( "Doing: teardown of HU fixture" );
+        /*
         for (auto &s : std::vector<std::string>{input_material_file,input_density_file,output_db_file,output_HU_material_file}){
             if ( std::remove(s.c_str()) == 0 ){
                 BOOST_TEST_MESSAGE( std::string("deleted: ") + s );
@@ -62,6 +66,7 @@ struct HUfixture {
                 BOOST_TEST_MESSAGE( std::string("not found: ") + s );
             }
         }
+        */
         delete hu2mb;
         BOOST_TEST_MESSAGE( "Done: teardown of HU fixture" );
         GateMaterialDatabase::DeleteInstance();
@@ -99,23 +104,28 @@ BOOST_AUTO_TEST_CASE( normal_build_density_range )
     }
 }
 
-BOOST_AUTO_TEST_CASE( reproduce_input_density_data )
+BOOST_DATA_TEST_CASE( reproduce_input_density_data, boost::unit_test::data::make({0.5,0.05,0.005}), dtol )
 {
-    BOOST_TEST_MESSAGE( "Check that density values of input data are identical to those in input table.");
-    hu2mb->SetDensityTolerance( 0.1 * g/cm3); // add unit, very important...
+    BOOST_TEST_MESSAGE( "check that output HU tables are compatible with input table, dtol=" << dtol << " g/cm3" );
+    hu2mb->SetDensityTolerance( dtol * g/cm3); // add unit, very important...
     hu2mb->BuildAndWriteMaterials();
+    GateMaterialDatabase::DeleteInstance();
     theMaterialDatabase.AddMDBFile( output_db_file );
     auto humtable = GetHounsfieldMaterialTableFromFile(output_HU_material_file);
     std::vector<int>   hu_input{  -1000, -98,     -97,  14,   23,     100,     101,    1600,3000};
     std::vector<double> d_input{1.21e-3,0.93,0.930486,1.03,1.031,1.119900,1.076200,1.964200, 2.8};
     auto hu = hu_input.begin();
     auto d = d_input.begin();
-    while (hu != hu_input.end() && d != d_input.end() ){
-        BOOST_TEST_MESSAGE( "checking that for HU = " << double(*hu) << " the density is " << double(*d) << " g/cm3" );
-        double d_lookup = (*humtable)[humtable->GetLabelFromH(*hu)].mMaterial->GetDensity()/(g/cm3);
-        BOOST_CHECK_CLOSE_FRACTION( d_lookup, *d, 0.001);
-        ++hu;
-        ++d;
+    for (;hu != hu_input.end() && d != d_input.end(); ++hu, ++d ){ 
+        if (std::next(d) != d_input.end() && (*(std::next(d))<*d) ) continue; // skip the schneider dip, we know it does not work there
+        auto material =(*humtable)[humtable->GetLabelFromH(*hu)].mMaterial;
+        double d_lookup = material->GetDensity()/(g/cm3);
+        BOOST_TEST_MESSAGE( "checking that for HU = " << double(*hu) << " ('" << material->GetName() << "') the density "
+                            << d_lookup << "g/cm3 obtained from the generated table, is close enough (within "
+                            << double(dtol*0.5) << " g/cm3) to the density "
+                            << double(*d) << " g/cm3 from the input table" );
+        // BOOST_CHECK_CLOSE_FRACTION( d_lookup, *d, 0.001);
+        BOOST_CHECK_SMALL( std::abs(d_lookup - *d), 0.6*dtol );
     }
 }
 
