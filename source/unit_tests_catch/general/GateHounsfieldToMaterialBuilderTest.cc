@@ -34,8 +34,8 @@ struct HUfixture {
 
         // allow debugging output (maybe move this to main program?)
         GateMessageManager *messman = GateMessageManager::GetInstance();
-        messman->SetMessageLevel("Geometry",2);
-        messman->SetMessageLevel("Core",2);
+        messman->SetMessageLevel("Geometry",1);
+        messman->SetMessageLevel("Core",1);
 
         // provide a material database
         // theMaterialDatabase.AddMDBFile( (bfs::path( GATE_SOURCE_DIR_STRING ) / bfs::path("GateMaterials.db") ).string() );
@@ -123,10 +123,10 @@ TEST_CASE_METHOD( HUfixture,"check that output tables are consistent with input 
         double d_lookup = material->GetDensity()/(g/cm3);
         INFO( "checking that for HU = " << double(*hu) << " ('" << material->GetName() << "') the density "
               << d_lookup << "g/cm3 obtained from the generated table, is close enough (within "
-              << double(dtol*0.5) << " g/cm3) to the density "
+              << double(1.0*dtol) << " g/cm3) to the density "
               << double(*d) << " g/cm3 from the input table" );
         // BOOST_CHECK_CLOSE_FRACTION( d_lookup, *d, 0.001);
-        CHECK( d_lookup == Approx(*d).margin(0.6*dtol) );
+        CHECK( d_lookup == Approx(*d).margin(1.0*dtol) );
     }
 }
 
