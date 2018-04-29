@@ -17,6 +17,6 @@ FILE(GLOB GENERAL_TEST_SRCS general/Gate*.cc)
 add_executable(general_unit_tests ${GENERAL_TEST_MAIN} ${GENERAL_TEST_SRCS})
 add_definitions( -DGATE_SOURCE_DIR=${CMAKE_HOME_DIRECTORY} )
 
-TARGET_LINK_LIBRARIES(general_unit_tests GateImpl ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ${CLHEP_LIBRARIES} ${LIBXML2_LIBRARIES} ${LMF_LIBRARY} ${ECAT7_LIBRARY} ${RTK_LIBRARIES} ${ITK_LIBRARIES} -L${Boost_LIBRARY_DIRS} -lboost_system -lboost_filesystem)
+TARGET_LINK_LIBRARIES(general_unit_tests ${ALL_GATE_LINK_LIBRARIES} -L${Boost_LIBRARY_DIRS} -lboost_system -lboost_filesystem)
 ADD_TEST(NAME general_unit_tests
          COMMAND general_unit_tests -r detailed)
