@@ -1,14 +1,26 @@
-// vim: cindent smartindent expandtab sw=4
+// vim: cindent smartindent expandtab sw=2
+
 // this is the class we want to test
 #include <GateHounsfieldToMaterialsBuilder.hh>
-// design flaw: in order to get "the" material detector base, we first need to construct "the" detector
+
+// these classes play a role
 #include <GateMaterialDatabase.hh>
 #include <GateHounsfieldMaterialTable.hh>
 #include <GateMessageManager.hh>
+
+// definition of g and cm3
 #include <G4SystemOfUnits.hh>
+
+// deal with global state :-(
+#include <G4Material.hh>
+
+// standard library
 #include <string>
 #include <iterator> // for std::next
 
+// preprocessor trick copied from https://gcc.gnu.org/onlinedocs/cpp/Stringizing.html
+// (with str=STRINGIZE and xstr=XSTRINGIZE)
+// We could get rid of this if we would generate our own Materials.db input file.
 #ifdef GATE_SOURCE_DIR
 #define XSTRINGIZE(s) STRINGIZE(s)
 #define STRINGIZE(s) #s
@@ -21,93 +33,51 @@
 #include <catch.hpp>
 
 GateHounsfieldMaterialTable* GetHounsfieldMaterialTableFromFile(std::string filepath,int minHU=-100000);
+void write_HU_input_files(const std::string& material_path,const std::string& density_path);
 
-struct HUfixture {
-    HUfixture() : hu2mb(new GateHounsfieldToMaterialsBuilder),
-                  input_material_file("tmp_material_file.txt"),
-                  input_density_file("tmp_density_table.txt"),
-                  output_db_file("output_db_file.txt"),
-                  output_HU_material_file("output_HU_material_file.txt"){
+TEST_CASE("Correctly define materials db and HU lookup table based on input materials and density table","[HU][density][CT][tables][GateRTion]"){
+  auto G4table = G4Material::GetMaterialTable();
+  size_t ng4material = G4table->size();
+  // TODO: maybe use random filenames so that tests can run in parallel.
+  std::string input_material_file("tmp_HUbuilder_test_input_material_file.txt");
+  std::string input_density_file("tmp_HUbuilder_test_input_density_table.txt");
+  std::string output_db_file("tmp_HUbuilder_test_output_db_file.txt");
+  std::string output_HU_material_file("tmp_HUbuilder_test_output_HU_material_file.txt");
 
-        // hello
-        INFO( "Doing: setup of HU fixture" );
+  // allow debugging output (maybe move this to main program?)
+  GateMessageManager *messman = GateMessageManager::GetInstance();
+  messman->SetMessageLevel("Geometry",1);
+  messman->SetMessageLevel("Core",1);
 
-        // allow debugging output (maybe move this to main program?)
-        GateMessageManager *messman = GateMessageManager::GetInstance();
-        messman->SetMessageLevel("Geometry",1);
-        messman->SetMessageLevel("Core",1);
+  // start with the standard material database (needed for properties of elements)
+  theMaterialDatabase.AddMDBFile( GATE_SOURCE_DIR_STRING "/GateMaterials.db" );
 
-        // provide a material database
-        // theMaterialDatabase.AddMDBFile( (bfs::path( GATE_SOURCE_DIR_STRING ) / bfs::path("GateMaterials.db") ).string() );
-        theMaterialDatabase.AddMDBFile( GATE_SOURCE_DIR_STRING "/GateMaterials.db" );
+  // create input files
+  write_HU_input_files(input_material_file,input_density_file);
 
-        // create input files
-        write_HU_input_files(input_material_file,input_density_file);
+  // configure HU to material table builder
+  INFO( "Constructing table builder, not building any tables yet...");
+  auto hu2mb = new GateHounsfieldToMaterialsBuilder;
 
-        // configure HU to material table builder
-        hu2mb->SetMaterialTable(input_material_file);
-        hu2mb->SetDensityTable(input_density_file);
-        hu2mb->SetOutputMaterialDatabaseFilename(output_db_file);
-        hu2mb->SetOutputHUMaterialFilename(output_HU_material_file);
-        hu2mb->SetDensityTolerance( 0.1 * g/cm3); // add unit, very important...
+  INFO( "Setting input and output filenames");
+  hu2mb->SetMaterialTable(input_material_file);
+  hu2mb->SetDensityTable(input_density_file);
+  hu2mb->SetOutputMaterialDatabaseFilename(output_db_file);
+  hu2mb->SetOutputHUMaterialFilename(output_HU_material_file);
+  CHECK(true);
 
-        // goodbye
-        INFO( "Done: setup of HU fixture" );
+  for (double dtol = 1.0 ; dtol>0.9e-4 ; dtol/=10 ){
+    // SECTION( string("Build and write with dtol=")+std::to_string(dtol)+" g/cm3");
+    SECTION( std::string("Build and write with dtol=") + std::to_string(dtol) + " g/cm3"){
+      INFO( "set density tolerance to dtol=" << dtol << " g/cm3" );
+      hu2mb->SetDensityTolerance( dtol * g/cm3); // add unit, very important...
+      INFO( "build standard Schneider table without crashing" );
+      REQUIRE_NOTHROW( hu2mb->BuildAndWriteMaterials() );
     }
-    ~HUfixture(){
-        INFO( "Doing: teardown of HU fixture" );
-        /**/
-        for (auto &s : std::vector<std::string>{input_material_file,input_density_file,output_db_file,output_HU_material_file}){
-            if ( std::remove(s.c_str()) == 0 ){
-                INFO( std::string("deleted: ") + s );
-            } else {
-                INFO( std::string("not found: ") + s );
-            }
-        }
-        /**/
-        delete hu2mb;
-        INFO( "Done: teardown of HU fixture" );
-        GateMaterialDatabase::DeleteInstance();
-    }
-    void write_HU_input_files(const std::string& material_path,const std::string& density_path);
-    // objects created for each test
-    GateHounsfieldToMaterialsBuilder* hu2mb;
-    std::string input_material_file;
-    std::string input_density_file;
-    std::string output_db_file;
-    std::string output_HU_material_file;
-};
+  }
 
-/******************************************************************************************************************/
-
-
-TEST_CASE_METHOD( HUfixture, "construct/destruct", "[create][HU]" )
-{
-    INFO( "Constructing table builder, not building any tables, destruct...");
-    CHECK(true);
-}
-
-TEST_CASE_METHOD( HUfixture, "normal table build", "[default][HU]" )
-{
-    INFO( "build standard Schneider table without crashing" );
-    hu2mb->BuildAndWriteMaterials();
-    CHECK(true);
-}
-
-TEST_CASE_METHOD( HUfixture,"build with various tolerances","[HU][stresstest]" )
-{
-    for (double dtol = 1.0 ; dtol>0.9e-4 ; dtol/=10 ){
-        INFO( "build standard Schneider table without crashing, dtol=" << dtol << " g/cm3" );
-        hu2mb->SetDensityTolerance( dtol * g/cm3); // add unit, very important...
-        hu2mb->BuildAndWriteMaterials();
-        CHECK(true);
-    }
-}
-
-TEST_CASE_METHOD( HUfixture,"check that output tables are consistent with input tables","[HU][consistency]" )
-{
+  SECTION( "Check that output tables are consistent with input tables"){
     double dtol = 0.001;
-    INFO( "check that output HU tables are compatible with input table, dtol=" << dtol << " g/cm3" );
     hu2mb->SetDensityTolerance( dtol * g/cm3); // add unit, very important...
     hu2mb->BuildAndWriteMaterials();
     GateMaterialDatabase::DeleteInstance();
@@ -118,23 +88,47 @@ TEST_CASE_METHOD( HUfixture,"check that output tables are consistent with input 
     auto hu = hu_input.begin();
     auto d = d_input.begin();
     for (;hu != hu_input.end() && d != d_input.end(); ++hu, ++d ){ 
-        if (std::next(d) != d_input.end() && (*(std::next(d))<*d) ) continue; // skip the schneider dip, we know it does not work there
-        auto material =(*humtable)[humtable->GetLabelFromH(*hu)].mMaterial;
-        double d_lookup = material->GetDensity()/(g/cm3);
-        INFO( "checking that for HU = " << double(*hu) << " ('" << material->GetName() << "') the density "
-              << d_lookup << "g/cm3 obtained from the generated table, is close enough (within "
-              << double(1.0*dtol) << " g/cm3) to the density "
-              << double(*d) << " g/cm3 from the input table" );
-        // BOOST_CHECK_CLOSE_FRACTION( d_lookup, *d, 0.001);
-        CHECK( d_lookup == Approx(*d).margin(1.0*dtol) );
+      auto material =(*humtable)[humtable->GetLabelFromH(*hu)].mMaterial;
+      // the value to test
+      double d_lookup = material->GetDensity()/(g/cm3);
+      // within the bins the max variation in density is dtol, the lookup value should be in the middle
+      double tolerance = 0.6*dtol;
+      // the schneider dip is a special case
+      if (std::next(d) != d_input.end() && (*(std::next(d))<*d) ) tolerance = *d - *(std::next(d));
+      if (d != d_input.begin() && (*(std::prev(d))>*d) ) tolerance = *(std::prev(d))-*d;
+      INFO( "checking that for HU = " << double(*hu) << " ('" << material->GetName() << "') the density "
+            << d_lookup << "g/cm3 obtained from the generated table, is close enough (within "
+            << double(0.6*dtol) << " g/cm3) to the density "
+            << double(*d) << " g/cm3 from the input table" );
+      // now test that it is indeed close enough
+      CHECK( d_lookup == Approx(*d).margin(tolerance) );
     }
-}
+  }
 
+  INFO( "Cleanup" );
+  /**/
+  for (auto &s : std::vector<std::string>{input_material_file,input_density_file,output_db_file,output_HU_material_file}){
+      if ( std::remove(s.c_str()) == 0 ){
+          INFO( std::string("deleted: ") + s );
+      } else {
+          INFO( std::string("not found: ") + s );
+          CHECK(false);
+      }
+  }
+  /**/
+  delete hu2mb;
+  GateMaterialDatabase::DeleteInstance();
 
+  // clean up the extra entries in the G4 material table
+  for (size_t ig4 = ng4material; ig4 < G4table->size(); ++ig4){
+    delete G4table->at(ig4);
+  }
+  G4table->resize(ng4material);
+};
 
 /******************************************************************************************************************/
 // input data
-void HUfixture::write_HU_input_files(const std::string& material_path,const std::string& density_path){
+void write_HU_input_files(const std::string& material_path,const std::string& density_path){
     std::ofstream fmaterials(material_path);
     // copy from GateContrib/dosimetry/Radiotherapy/example2/data/SimpleMaterialsTable.txt
     fmaterials
@@ -195,7 +189,9 @@ void HUfixture::write_HU_input_files(const std::string& material_path,const std:
 }
 
 
-// this should be a method of the GateHounsfieldMaterialTable class!
+/******************************************************************************************************************/
+// The code below is copied from the GateVImageVolume::LoadImageMaterialsFromHounsfieldTable() implementation.
+// If this were method of the GateHounsfieldMaterialTable class then we would not have to copy it here...
 GateHounsfieldMaterialTable* GetHounsfieldMaterialTableFromFile(std::string filepath,int minHU){
   std::ifstream is;
   OpenFileInput(filepath, is);
