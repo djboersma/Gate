@@ -121,7 +121,6 @@ public:
 protected:
   GateEnergySpectrumActor(G4String name, G4int depth=0);
 
-  TFile * pTfile;
   G4String mHistName;
 
   TH1D * pEnergySpectrum;

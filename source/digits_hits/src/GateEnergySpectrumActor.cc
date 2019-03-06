@@ -88,6 +88,11 @@ GateEnergySpectrumActor::GateEnergySpectrumActor(G4String name, G4int depth):
 GateEnergySpectrumActor::~GateEnergySpectrumActor()
 {
   GateDebugMessageInc("Actor",4,"~GateEnergySpectrumActor() -- begin\n");
+  // we chose to set TH1 directory to 0, so we need to delete them ourselves.
+  for(std::list<TH1D*>::iterator it=allEnabledTH1DHistograms.begin();it!=allEnabledTH1DHistograms.end();++it)
+  {
+	  delete *it;
+  }
   GateDebugMessageDec("Actor",4,"~GateEnergySpectrumActor() -- end\n");
 }
 //-----------------------------------------------------------------------------
@@ -123,7 +128,12 @@ void GateEnergySpectrumActor::Construct()
       }
   }
   
-  pTfile = new TFile(mSaveFilename,"RECREATE");
+  // Store the current 'add directory' policy (true or false):
+  // whether new histograms should automatically be added to the current directory (e.g. open TFile) or not.
+  Bool_t h1_add_directory_status = TH1::AddDirectoryStatus();
+  // Choose *NOT* to do that for the histograms that are defined here. We'll put back the old setting when we're done.
+  TH1::AddDirectory(kFALSE);
+
   if (!mEnableLogBinning){
       if (mEnableEnergySpectrumNbPartFlag){
           pEnergySpectrumNbPart = new TH1D("energySpectrumNbPart","Energy Spectrum Number of particles",GetENBins(),GetEmin() ,GetEmax() );
@@ -220,6 +230,9 @@ void GateEnergySpectrumActor::Construct()
       allEnabledTH1DHistograms.push_back(pDeltaEc);
   } 
   ResetData();
+
+  // Restore old setting for 'add directory' policy.
+  TH1::AddDirectory(h1_add_directory_status);
 }
 //-----------------------------------------------------------------------------
 
@@ -228,15 +241,22 @@ void GateEnergySpectrumActor::Construct()
 /// Save data
 void GateEnergySpectrumActor::SaveData()
 {
-   if (mEnableRelativePrimEvents){
-    for(std::list<TH1D*>::iterator it=allEnabledTH1DHistograms.begin();it!=allEnabledTH1DHistograms.end();++it)
-      {
-          (*it)->Scale(1./nEvent);
+  // save the current directory path
+  G4String dirsave = gDirectory->GetPathStatic();
+  TFile output(mSaveFilename,"RECREATE");
+  for(std::list<TH1D*>::iterator it=allEnabledTH1DHistograms.begin();it!=allEnabledTH1DHistograms.end();++it)
+  {
+      // NOTE: if the user configures 'save every N seconds/events' then the following is doing a bad thing!
+      if (mEnableRelativePrimEvents){
+        (*it)->Scale(1./nEvent);
       }
-   }
+      // Now
+      (*it)->Write();
+  }
+  output.Close();
+  gDirectory->cd(dirsave);
   
   GateVActor::SaveData();
-  pTfile->Write();
   
    //Also output data as txt if enabled
   if (mSaveAsTextFlag) {
