@@ -9,6 +9,12 @@
 #include "GateEnergySpectrumActor.hh"
 #ifdef G4ANALYSIS_USE_ROOT
 
+#include <TDirectory.h>
+#include <TFile.h>
+#include <TH1.h>
+#include <TH2.h>
+#include <TMath.h>
+
 #include "GateEnergySpectrumActorMessenger.hh"
 #include "GateMiscFunctions.hh"
 
@@ -243,17 +249,20 @@ void GateEnergySpectrumActor::SaveData()
 {
   // save the current directory path
   G4String dirsave = gDirectory->GetPathStatic();
+
+  // open ROOT file
   TFile output(mSaveFilename,"RECREATE");
   for(std::list<TH1D*>::iterator it=allEnabledTH1DHistograms.begin();it!=allEnabledTH1DHistograms.end();++it)
   {
-      // NOTE: if the user configures 'save every N seconds/events' then the following is doing a bad thing!
+      // NOTE to AR: this scaling works incorrectly if the user configures 'save every N seconds/events'
       if (mEnableRelativePrimEvents){
         (*it)->Scale(1./nEvent);
       }
-      // Now
+      // Save to ROOT file
       (*it)->Write();
   }
   output.Close();
+  // return to the saved 'current directory path'
   gDirectory->cd(dirsave);
   
   GateVActor::SaveData();
@@ -264,16 +273,7 @@ void GateEnergySpectrumActor::SaveData()
       {
           SaveAsText((*it),mSaveFilename);
       }
-    ////SaveAsText(pEnergySpectrumNbPart, mSaveFilename);
-    ////SaveAsText(pEnergySpectrumFluenceCos, mSaveFilename);
-    //SaveAsText(pEnergySpectrumFluenceTrack, mSaveFilename);
-    ////SaveAsText(pEnergyEdepSpectrum, mSaveFilename);
-    ////SaveAsText(pEdep, mSaveFilename);
-    ////// SaveAsText(pEdepTime, mSaveFilename); no TH2D
-    ////SaveAsText(pEdepTrack, mSaveFilename);
-    ////SaveAsText(pDeltaEc, mSaveFilename);
   }
-  pTfile->Close();
 }
 //-----------------------------------------------------------------------------
 
