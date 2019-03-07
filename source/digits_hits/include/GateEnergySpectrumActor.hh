@@ -25,11 +25,8 @@
 #include "GateActorMessenger.hh"
 #include "GateDiscreteSpectrum.hh"
 
-#include <TROOT.h>
-#include <TFile.h>
-#include <TH1.h>
-#include <TH2.h>
-#include <TMath.h>
+class TH1D;
+class TH2D;
 
 #include <list>
 
@@ -126,9 +123,6 @@ protected:
   TH1D * pEnergySpectrum;
   TH1D * pEnergySpectrumFluence;
   TH1D * pEnergySpectrumTrack;
-  //TH1D * ;
-  //TH1D * ;
-  //TH1D * ;
   TH1D * pEnergySpectrumNbPart;
   TH1D * pEnergySpectrumFluenceCos;
   TH1D * pEnergySpectrumFluenceTrack;
