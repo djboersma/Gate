@@ -29,7 +29,22 @@
 //-----------------------------------------------------------------------------
 /// Constructors (Prototype)
 GateEnergySpectrumActor::GateEnergySpectrumActor(G4String name, G4int depth):
-  GateVActor(name,depth)
+  GateVActor(name,depth),
+  pEnergySpectrum(nullptr),
+  pEnergySpectrumFluence(nullptr),
+  pEnergySpectrumTrack(nullptr),
+  pEnergySpectrumNbPart(nullptr),
+  pEnergySpectrumFluenceCos(nullptr),
+  pEnergySpectrumFluenceTrack(nullptr),
+  pEnergySpectrumLET(nullptr),
+  pEnergySpectrumLETdoseWeighted(nullptr),
+  pEnergyEdepSpectrum(nullptr),
+  pDeltaEc(nullptr),
+  pEdep(nullptr),
+  pEdepTime(nullptr),
+  pEdepTrack(nullptr),
+  pLETSpectrum(nullptr),
+  pQSpectrum(nullptr)
 {
   GateDebugMessageInc("Actor",4,"GateEnergySpectrumActor() -- begin\n");
 
@@ -97,8 +112,10 @@ GateEnergySpectrumActor::~GateEnergySpectrumActor()
   // we chose to set TH1 directory to 0, so we need to delete them ourselves.
   for(std::list<TH1D*>::iterator it=allEnabledTH1DHistograms.begin();it!=allEnabledTH1DHistograms.end();++it)
   {
-	  delete *it;
+    GateDebugMessageDec("Actor",5,"~GateEnergySpectrumActor() deleting histogram"<< (*it)->GetName() << "\n");
+    delete *it;
   }
+  allEnabledTH1DHistograms.clear();
   GateDebugMessageDec("Actor",4,"~GateEnergySpectrumActor() -- end\n");
 }
 //-----------------------------------------------------------------------------
