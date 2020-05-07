@@ -149,47 +149,34 @@ void GateSPSEneDistribution::GenerateRangeEnergy()
 void GateSPSEneDistribution::BuildUserSpectrum(G4String fileName)
 {
   std::ifstream inputFile (fileName.data());
-  G4int nline = 0;
-  if(inputFile) {
+  // create two tables for energy and probability
+  //G4int nline = 0;
+  if(inputFile){
+	  mTabEnergy.resize(0);
+	  mTabProba.resize(0);
     skipComment(inputFile);
-
-    G4String line;
-    G4double probaRead;
-    G4double energyRead;
 
     inputFile >> mMode;
     G4double emin;
     inputFile >> emin;
     SetEmin(emin);
-
-    G4int cursorPosition = inputFile.tellg();  // tellg() save file cursor position
-
-    while(getline(inputFile, line)) nline++;  // count number of line of inputFile
-    mDimSpectrum = nline - 1;
-
-    // create two tables for energy and probability
-    mTabEnergy.resize(mDimSpectrum);
-    mTabProba.resize(mDimSpectrum);
-
-    nline = 0;
-
-    inputFile.clear();
-    inputFile.seekg(cursorPosition, inputFile.beg);  // return to the 2nd line in the file
-
-    while(nline < mDimSpectrum) {
-      inputFile >> energyRead;
-      inputFile >> probaRead;
-
-      mTabEnergy[nline] = energyRead;
-      mTabProba[nline] = probaRead;
-      nline++;
-    }
-
+    skipComment(inputFile);
+    while(inputFile)
+      {
+        G4double probaRead;
+        G4double energyRead;
+        inputFile >> energyRead;
+        inputFile >> probaRead;
+        mTabEnergy.push_back(energyRead);
+        mTabProba.push_back(probaRead);
+        skipComment(inputFile);
+      }
     inputFile.close();
+    mDimSpectrum = mTabProba.size();
 
     // Construct probability table
     mSumProba = 0;
-    nline = 0;
+    G4int nline = 0;
 
     switch(mMode) {
     case 1:  // probability table to create discrete spectrum
@@ -304,3 +291,4 @@ void GateSPSEneDistribution::GenerateFromUserSpectrum()
   mParticleEnergy = pEnergy;
 }
 //-----------------------------------------------------------------------------
+// vim: ai sw=2 ts=2 et
